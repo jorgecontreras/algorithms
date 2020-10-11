@@ -36,17 +36,16 @@ def first_and_last_index(arr, number):
     Returns:
         a list containing the first and last indexes of the given value
     """
-        
-    # TODO: Write your first_and_last function here
-    # Note that you may want to write helper functions to find the start 
-    # index and the end index
-       
+    
+    # find occurence of element in any position, return -1 if not found
     start_index = binary_search(number, arr)
     if start_index < 0:
         return [-1, -1]
 
+    # with the element found, keep looking in adjacent indexes both sides
     index = start_index
-    #find first ocurrence
+    
+    #find first ocurrence (go to left one by one)
     while arr[index] == number:
         if index == 0:
             left = 0
@@ -57,7 +56,7 @@ def first_and_last_index(arr, number):
             left = index
             break
     
-    #find last ocurrence
+    #find last ocurrence (go to right one by one)
     index = start_index
     while arr[index] == number:
         if index == len(arr) - 1:
