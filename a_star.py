@@ -30,6 +30,7 @@ class Frontier:
         self.arrived = False
         self.M = M
         self.goal = goal
+        self.best_path = None
     
         # Path dictionary
         #
@@ -54,12 +55,14 @@ class Frontier:
     
     # remove a node from the frontier
     def remove(self, node: Node):
-        self.nodes.pop(node.name)
+        if node.name in self.nodes:
+            self.nodes.pop(node.name)
         
         # the goal test is made here,
         # right after removing a node
         if self.goal in self.nodes:
             self.arrived = True
+            self.best_path = self.paths[self.goal]
         
     # get the size of the frontier
     def size(self):
@@ -82,14 +85,15 @@ class Frontier:
         
         return data
     
-    # get the smallest path
-    # todo: store this in a minheap for optimal performance
+    # from the frontier get the smallest path
     def poll(self):
-        smallest = None
-        for edge, path in self.paths.items():
-            if smallest is None or path.cost < smallest.cost:
-                smallest = path
-        return edge, smallest
+        smallest_cost = None
+        for front in self.nodes:
+            if smallest_cost is None or self.paths[front]['cost'] < smallest_cost:
+                smallest_path = self.paths[front]
+                closest_node = front
+                smallest_cost = self.paths[front]['cost']
+        return closest_node, smallest_path
     
     # find adjacent nodes are are not in the frontier and not in the list of visited nodes     
     def adjacent(self, node: Node):
@@ -98,7 +102,11 @@ class Frontier:
     # calculate the cost of a segment (distance between two nodes)
     def segment_cost(self, n1: Node, n2: Node):
         return get_distance(self.M.intersections[n1.name], self.M.intersections[n2.name])
-            
+    
+    # calculate the estimated straight line distance between a node and the goal
+    def estimated_cost(self, node):
+        return get_distance(self.M.intersections[node], self.M.intersections[self.goal])
+    
     # EXPAND
     # expanding involves the following steps:
     #
@@ -111,8 +119,6 @@ class Frontier:
     #
     # *** Both the cost and the paths will use the input node as a starting point. ***
     def expand(self, node, path):
-        print(node.name)
-        print(path)
         adjacent = self.adjacent(node) # [1]
         for a in adjacent:
             n = Node(a) # [2]
@@ -122,14 +128,11 @@ class Frontier:
             
     def update_path(self, n1: Node, n2: Node):
         cost = self.segment_cost(n1, n2)
-        self.paths[n2.name] = {'cost': self.paths[n1.name]['cost'] + cost, 'visited': self.paths[n1.name]['visited'] + [n2.name] }
+        new_cost = self.paths[n1.name]['cost'] - self.estimated_cost(n1.name) + self.estimated_cost(n2.name) + cost
+        self.paths[n2.name] = {'cost': new_cost, 'visited': self.paths[n1.name]['visited'] + [n2.name] }
     
-                          
-                          
 def shortest_path(M,start,goal):
     print("shortest path called")
-    
-    
     
     # Initialize our frontier, with the Map and destination (goal)
     frontier = Frontier(M, goal)
@@ -146,24 +149,18 @@ def shortest_path(M,start,goal):
     node, path = frontier.poll()
     
     frontier.expand(Node(node), path)
+    x = 50
     
-    print("Frontier after expanding")
-    print(frontier)
+    while len(frontier.nodes) > 0 and x > 0:
+        x -= 1
+        node, path = frontier.poll()
+        
+        if frontier.best_path is not None and path['cost'] > frontier.best_path['cost']:
+            break
+            
+        frontier.expand(Node(node), path)
     
-
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
+    return frontier.best_path['visited']
     
     
     
