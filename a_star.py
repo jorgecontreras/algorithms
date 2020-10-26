@@ -7,7 +7,6 @@ def get_distance(a, b):
     
     d = (dx**2 + dy**2)**(1/2)
     return d
- 
     
 # A Node is an intersection in the map.
 class Node:
@@ -95,9 +94,19 @@ class Frontier:
                 smallest_cost = self.paths[front]['cost']
         return closest_node, smallest_path
     
-    # find adjacent nodes are are not in the frontier and not in the list of visited nodes     
+    # find adjacent nodes that are not in the list of visited nodes*
+    # * in some cases we DO want to explore a path that was already in the dictionary
+    # who knows, maybe this new path is cheaper?
     def adjacent(self, node: Node):
-        return [i for i in self.M.roads[node.name] if i not in self.nodes and i not in self.paths]
+        adjacent = []
+        for i in self.M.roads[node.name]:
+            if i not in self.paths:
+                adjacent.append(i)
+            if i in self.paths and i in self.nodes:
+                adjacent.append(i)
+        return adjacent
+    
+        #return [i for i in self.M.roads[node.name] if i not in self.nodes and i not in self.paths]
     
     # calculate the cost of a segment (distance between two nodes)
     def segment_cost(self, n1: Node, n2: Node):
@@ -106,6 +115,7 @@ class Frontier:
     # calculate the estimated straight line distance between a node and the goal
     def estimated_cost(self, node):
         return get_distance(self.M.intersections[node], self.M.intersections[self.goal])
+        
     
     # EXPAND
     # expanding involves the following steps:
@@ -123,14 +133,24 @@ class Frontier:
         for a in adjacent:
             n = Node(a) # [2]
             self.update_path(node, n) # [3][4]
-            self.add(n) # [5]
+            #self.add(n) # [5]
         self.remove(node) # [6]
+        
+        #self.paths.pop(node.name) # [7]
             
     def update_path(self, n1: Node, n2: Node):
         cost = self.segment_cost(n1, n2)
         new_cost = self.paths[n1.name]['cost'] - self.estimated_cost(n1.name) + self.estimated_cost(n2.name) + cost
-        self.paths[n2.name] = {'cost': new_cost, 'visited': self.paths[n1.name]['visited'] + [n2.name] }
-    
+        # the path we are trying to add was already visited
+        if n2.name in self.paths:
+            if new_cost < self.paths[n2.name]['cost']:
+                self.paths[n2.name] = {'cost': new_cost, 'visited': self.paths[n1.name]['visited'] + [n2.name] }
+                self.add(n2)
+                
+        else:
+            self.paths[n2.name] = {'cost': new_cost, 'visited': self.paths[n1.name]['visited'] + [n2.name] }
+            self.add(n2)  
+            
 def shortest_path(M,start,goal):
     print("shortest path called")
     
@@ -149,9 +169,9 @@ def shortest_path(M,start,goal):
     node, path = frontier.poll()
     
     frontier.expand(Node(node), path)
-    x = 50
+    x = 30
     
-    while len(frontier.nodes) > 0 and x > 0:
+    while frontier.size() > 0 and x > 0:
         x -= 1
         node, path = frontier.poll()
         
@@ -160,7 +180,9 @@ def shortest_path(M,start,goal):
             
         frontier.expand(Node(node), path)
     
-    return frontier.best_path['visited']
-    
+    best_path = None
+    if frontier.best_path is not None:
+        best_path = frontier.best_path['visited']
+    return best_path
     
     
