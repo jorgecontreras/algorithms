@@ -1,29 +1,30 @@
 # Quicksort
 
-def quicksort(items, start, end):
-    left_index = start
-    pivot_index = end
-    pivot_value = items[pivot_index]
+def quickSort(a, l, r):
 
-    while left_index != pivot_index:
-        item = items[left_index]
-        
-        if item <= pivot_value:
-            left_index += 1
-            continue
+    if l >= r:
+        return a
 
-        items[left_index] = items[pivot_index - 1]
-        items[pivot_index - 1] = pivot_value
-        items[pivot_index] = item
-        pivot_index -= 1
+    x = a[l]
+    i = l
+    j = r
 
-    return pivot_index
+    while i <= j:
+        while a[i] < x:
+            i += 1
+        while a[j] > x:
+            j -= 1
+        if i <= j:
+            t = a[i]
+            a[i] = a[j]
+            a[j] = t
+            i += 1
+            j -= 1
 
-
-
-quicksort(items, 0, len(items) - 1)
-
-
+    quickSort(a, l, j)
+    quickSort(a, i, r) 
+    
+    return a
 
 
 unordered = [43,2,9,13,3,40,55,10,4,7,3,9,2,5,88,34,15,67]
