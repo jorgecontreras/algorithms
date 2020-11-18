@@ -27,5 +27,7 @@ def quickSort(a, l, r):
     return a
 
 
+# test
 unordered = [43,2,9,13,3,40,55,10,4,7,3,9,2,5,88,34,15,67]
-ordered = quicksort(unordered)
+quick_sorted = quickSort(unordered, 0, len(unordered) - 1)
+assert sorted(unordered) == quick_sorted
