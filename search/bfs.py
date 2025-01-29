@@ -1,3 +1,9 @@
+"""
+The BFS algorithm is used to traverse or search tree or graph data structures. 
+It starts at the root node and explores all neighboring nodes at the present 
+depth before moving on to nodes at the next depth level.
+"""
+
 graph = {
   'A' : ['B','C'],
   'B' : ['D', 'E'],
